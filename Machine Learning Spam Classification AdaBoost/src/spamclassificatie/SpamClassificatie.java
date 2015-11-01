@@ -9,7 +9,7 @@ public class SpamClassificatie {
     {
     	// TODO ALL COMMENTS
         SpamClassificatie main = new SpamClassificatie();
-
+        // list<Data>
         List<Mail> allData = new ArrayList<>();
         
         main.LoadFile("spambase.txt", allData);
@@ -31,7 +31,7 @@ public class SpamClassificatie {
         // start the timer
         long startTime = System.currentTimeMillis();
         
-        // 
+        // generate and cross-validate
         for (; valueOfM < valueOfM_limit; valueOfM += valueOfM_incrementer)
         {
         	double error_total = 0;
