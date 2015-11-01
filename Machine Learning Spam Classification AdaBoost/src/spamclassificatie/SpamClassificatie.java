@@ -20,7 +20,7 @@ public class SpamClassificatie {
 		// number of hypotheses learned by the current AdaBoost algorithm
 		int valueOfM = 10;
 		// 
-		int valueOfM_limit = 350;
+		int valueOfM_limit = 50;
 		//
 		int valueOfM_incrementer = 10;
         
@@ -31,18 +31,40 @@ public class SpamClassificatie {
         // start the timer
         long startTime = System.currentTimeMillis();
         
+        class DataSet 
+    	{
+    		private List<Mail> dataSet, validationSet;
+    		
+    		public DataSet(List<Mail> dataSet, List<Mail> validationSet)
+    		{
+    			this.dataSet = dataSet;
+    			this.validationSet = validationSet;
+    		}
+    	}
+    	
+        
         // generate and cross-validate
-        for (; valueOfM < valueOfM_limit; valueOfM += valueOfM_incrementer)
+        List<DataSet> new_datasets = new ArrayList<DataSet>(numberOfDataSets);
+		for (int i = 0;i < numberOfDataSets;i++) 
+		{
+			List<Mail> currentDataSet = new ArrayList<Mail>();
+			List<Mail> validationSet = datasets.get(i);
+			for (int a = 0; a < numberOfDataSets; a++)
+				if (a!= i) currentDataSet.addAll(datasets.get(a));
+			new_datasets.add(new DataSet(currentDataSet, validationSet));
+		}
+		
+		for (; valueOfM < valueOfM_limit; valueOfM += valueOfM_incrementer)
         {
         	double error_total = 0;
+        	// TODO relocate validationset production to here
         	for (int iterations = 0; iterations < 100; iterations++)
         	{
         		for (int i = 0; i < numberOfDataSets; i++)
+        		
         		{
-        			List<Mail> currentDataSet = new ArrayList<Mail>();
-        			List<Mail> validationSet = datasets.get(i);
-        			for (int a = 0; a < numberOfDataSets; a++)
-        				if (a!= i) currentDataSet.addAll(datasets.get(a));
+        			List<Mail> currentDataSet = new_datasets.get(i).dataSet;
+        			List<Mail> validationSet = new_datasets.get(i).validationSet;
         			AdaBoost adaBoost = new AdaBoost(valueOfM,currentDataSet);
         			double error = 0;
         			for (int a = 0; a < validationSet.size(); a++)
