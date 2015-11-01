@@ -13,18 +13,13 @@ public class BaseLearner {
 	// the sorted dataSet
 	private DataPair[][] sortedData;
 	
-	// the cumulative weight of all spam
-	private double w_plus_all;
-	// the cumulative weight of all normal e-mail
-	private double w_minus_all;
-	
 	// the adaBoost algorithm this Base Learner is part of
 	AdaBoost parent;
 	//
 	private double[] weights;
 	
 	public BaseLearner(DataPair[][] sortedData, double[] weights, int variable, AdaBoost adaBoost) {
-		a = (int) (b = w_plus_all = w_minus_all = 0);
+		a = (int) (b = 0);
 		var_index = variable;
 		this.sortedData = sortedData;
 		this.weights = weights;
@@ -37,7 +32,11 @@ public class BaseLearner {
 
 	private void train()
 	{
-		// TODO Auto-generated method stub
+		// the cumulative weight of all spam
+		double w_plus_all = 0;
+		// the cumulative weight of all normal e-mail
+		double w_minus_all = 0;
+		
 		//
 		DataPair[] current_feature = sortedData[var_index];
 		// calculate w_- and w_+
@@ -58,7 +57,7 @@ public class BaseLearner {
 		
 		// the variables to store the best e yet
 		double e_min = Double.MAX_VALUE;
-		double x_min = 0;
+		int x_min = 0;
 		double classification_min = 0;
 		
 		
@@ -71,28 +70,38 @@ public class BaseLearner {
 				w_plus_A += weights[current_feature[i].x_index];
 			// add the weighted classification to the cumulative classification
 			classification += weights[current_feature[i].x_index] * parent.dataset.get(current_feature[i].x_index).y;
+			
 			double w_minus_B = w_minus_all - w_minus_A;
 			double w_plus_B = w_plus_all - w_plus_A;
 			double p_B = (w_minus_B + w_plus_B) == 0 ? 0 : w_plus_B / (w_minus_B + w_plus_B);
 			double e_B = 2*p_B * (1 - p_B);
-			double p_A = (w_minus_A + w_plus_A) == 0 ? 0 : w_plus_B / (w_minus_A + w_plus_A);
+			double p_A = (w_minus_A + w_plus_A) == 0 ? 0 : w_plus_A / (w_minus_A + w_plus_A);
 			double e_A = 2*p_A * (1 - p_A);
-			e = (w_plus_B + w_minus_B) * e_B + (w_plus_A + w_minus_A) * e_A;
+			
+			e = ((w_plus_B + w_minus_B) * e_B) + ((w_plus_A + w_minus_A) * e_A);
 			
 			if (e < e_min)
 			{
 				e_min = e;
 				// TODO checken!
+				// TODO hier kan ws. performance gewonnen worden, kijken of we de hele lijst 
+				// door moeten
 				
-				x_min = current_feature[i].x_index;
+				x_min = i;
 				classification_min = classification;
+				//System.out.println("i = "+ i + ", e = " + e + ", x_min = " + x_min + ", min = " + current_feature[0].value + ", max = " + current_feature[current_feature.length-1].value);
 			}
 		}
 		//
 		a = classification_min < 0 ? -1 : 1;
-		b = x_min;
+		b = current_feature[x_min].value;
 	}
 
+	/**
+	 * Classifies the mail as spam or not-spam
+	 * @param mail
+	 * @return +1 (spam) or -1 (not-spam)
+	 */
 	public int classify(Mail mail) {
 		// h(x) = a * sign(x_i - b)
 		return a * (mail.x[var_index] - b <= 0 ? -1 : 1);

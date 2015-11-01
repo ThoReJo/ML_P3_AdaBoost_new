@@ -7,21 +7,21 @@ public class SpamClassificatie {
 
     public static void main(String[] args) 
     {
-    	// TODO ALL COMMENTS
+    	// TODO Some comments
         SpamClassificatie main = new SpamClassificatie();
-        // list<Data>
         List<Mail> allData = new ArrayList<>();
         
         main.LoadFile("spambase.txt", allData);
 
         // number of datasets, used for crossvalidation
-		int numberOfDataSets = 5;
+		int numberOfDataSets = 10;
 		
-		// number of hypotheses learned by the current AdaBoost algorithm
-		int valueOfM = 10;
-		// 
-		int valueOfM_limit = 50;
-		//
+		// value expressing the number of hypotheses learned by the AdaBoost algorithm
+		// startvalue
+		int valueOfM = 180;
+		// exclusive limit
+		int valueOfM_limit = 280;
+		// incrementing with
 		int valueOfM_incrementer = 10;
         
 		// split the dataset into numberOfDataSets randomized independent datasets with
@@ -42,6 +42,11 @@ public class SpamClassificatie {
     		}
     	}
     	
+        /**
+         * TODO Het is echt veel sneller om de AdaBoost algoritmes te trainen op m data, dan
+         * valideren, dan x nieuwe hypotheses erbij leren, dan weer valideren en dan de errors
+         * naar een lijst schrijven die je uiteindelijk deelt door max - min / increment
+         */
         
         // generate and cross-validate
         List<DataSet> new_datasets = new ArrayList<DataSet>(numberOfDataSets);
@@ -57,8 +62,8 @@ public class SpamClassificatie {
 		for (; valueOfM < valueOfM_limit; valueOfM += valueOfM_incrementer)
         {
         	double error_total = 0;
-        	// TODO relocate validationset production to here
-        	for (int iterations = 0; iterations < 100; iterations++)
+        	int max_iterations = 5;
+        	for (int iterations = 0; iterations < max_iterations; iterations++)
         	{
         		for (int i = 0; i < numberOfDataSets; i++)
         		
@@ -77,7 +82,7 @@ public class SpamClassificatie {
         	}
         	long currentTime_seconds = (System.currentTimeMillis() - startTime) / 1000;
         	System.out.println(currentTime_seconds + "s:\tm = " + valueOfM +
-        			"\t| error: " + error_total/(numberOfDataSets*100));
+        			"\t| error: " + error_total/(numberOfDataSets*max_iterations));
         }
         //main.PrintList(allData);  
     }
@@ -110,6 +115,9 @@ public class SpamClassificatie {
 		return datasets;
 	}
 
+    /** 
+     * Method provided with assignment
+     */
 	public void PrintList(List<Mail> dataList)
     {
         for (Mail mail : dataList)
@@ -119,6 +127,9 @@ public class SpamClassificatie {
         }        
     }
     
+	/** 
+     * Method provided with assignment
+     */
     public void LoadFile(String filename, List<Mail> dataList)
     {
         File file = new File(filename);
