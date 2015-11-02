@@ -59,6 +59,8 @@ public class SpamClassificatie {
 			new_datasets.add(new DataSet(currentDataSet, validationSet));
 		}
 		
+		DataPair[][] sortedData = sortDatasetInVariables(allData);
+		
 		for (; valueOfM < valueOfM_limit; valueOfM += valueOfM_incrementer)
         {
         	double error_total = 0;
@@ -70,7 +72,7 @@ public class SpamClassificatie {
         		{
         			List<Mail> currentDataSet = new_datasets.get(i).dataSet;
         			List<Mail> validationSet = new_datasets.get(i).validationSet;
-        			AdaBoost adaBoost = new AdaBoost(valueOfM,currentDataSet);
+        			AdaBoost adaBoost = new AdaBoost(valueOfM,currentDataSet, sortedData);
         			double error = 0;
         			for (int a = 0; a < validationSet.size(); a++)
         			{
@@ -113,6 +115,27 @@ public class SpamClassificatie {
     		datasets.get(0).addAll(allData);
     	// return the set of datasets
 		return datasets;
+	}
+    
+    private static DataPair[][] sortDatasetInVariables(List<Mail> allData)
+	{
+		// TODO Comment
+		DataPair[][] sortedData = new DataPair[allData.get(0).x.length][];
+		
+		for (int i = 0; i < sortedData.length; i++)
+			sortedData[i] = new DataPair[allData.size()];
+		
+		for (int dataPoint = 0; dataPoint < allData.size(); dataPoint++)
+		{
+			for (int var = 0; var < sortedData.length; var++)
+			{
+				sortedData[var][dataPoint] = new DataPair(dataPoint, allData.get(dataPoint).x[var]);
+			}
+		}
+		// sort every variable array
+		for (int variable_index = 0; variable_index < sortedData.length; variable_index++)
+			Arrays.sort(sortedData[variable_index]);
+		return sortedData;
 	}
 
     /** 

@@ -17,7 +17,7 @@ public class AdaBoost
 	
 	// constructor for an AdaBoost algorithm, consisting of m hypotheses which train on
 	// the dataset
-	public AdaBoost(int numberOfHypotheses, List<Mail> dataset)
+	public AdaBoost(int numberOfHypotheses, List<Mail> dataset, DataPair[][] sortedData)
 	{
 		/*
 		 * Initialize data set, hypothesis set, weights on data points and weights on hypotheses (alphas). 
@@ -29,7 +29,7 @@ public class AdaBoost
 		for (int i = 0; i < weights.length; i++)
 			weights[i] = 1.0/dataset.size();
 		alphas = new double[numberOfHypotheses];
-		sortDatasetInVariables(dataset);
+		this.sortedData = sortedData;
 		
 		/*
 		 * Train m hypotheses according to the scaled AdaBoost algorithm.
@@ -48,27 +48,6 @@ public class AdaBoost
 			updateAndScaleWeights(hypothesis_index);
 		}
 	}
-
-	private void sortDatasetInVariables(List<Mail> allData)
-	{
-		// TODO Comment
-		sortedData = new DataPair[allData.get(0).x.length][];
-		
-		for (int i = 0; i < sortedData.length; i++)
-			sortedData[i] = new DataPair[allData.size()];
-		
-		for (int dataPoint = 0; dataPoint < allData.size(); dataPoint++)
-		{
-			for (int var = 0; var < sortedData.length; var++)
-			{
-				sortedData[var][dataPoint] = new DataPair(dataPoint, allData.get(dataPoint).x[var]);
-			}
-		}
-		// sort every variable array
-		for (int variable_index = 0; variable_index < sortedData.length; variable_index++)
-			Arrays.sort(sortedData[variable_index]);
-	}
-
 
 	private double calculateError(int m) 
 	{

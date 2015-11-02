@@ -96,6 +96,7 @@ public class BaseLearner {
 		a = classification_min < 0 ? -1 : 1;
 		b = current_feature[x_min].value;
 	}
+	
 
 	/**
 	 * Classifies the mail as spam or not-spam
