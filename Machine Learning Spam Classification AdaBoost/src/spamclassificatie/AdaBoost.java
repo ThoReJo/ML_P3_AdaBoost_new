@@ -4,32 +4,24 @@ import java.util.*;
 
 public class AdaBoost 
 {
-	// the data set as a list of Mail-objects
-	public List<Mail> dataset;
+	// the data set as a list of Mail-objects TODO Change comments
+	public List<SortedDataSet> datasets;
 	// the hypothesis set
 	private BaseLearner[] hypotheses;
-	// the weights on the data points
-	private double[] weights;
 	// the weights on the hypotheses
 	private double[] alphas;
 	
-	private DataPair[][] sortedData;
-	
 	// constructor for an AdaBoost algorithm, consisting of m hypotheses which train on
 	// the dataset
-	public AdaBoost(int numberOfHypotheses, List<Mail> dataset)
+	public AdaBoost(int numberOfHypotheses, List<SortedDataSet> datasets)
 	{
 		/*
 		 * Initialize data set, hypothesis set, weights on data points and weights on hypotheses (alphas). 
 		 */
-		this.dataset = dataset;
+		this.datasets = datasets;
 		hypotheses = new BaseLearner[numberOfHypotheses];
-		weights = new double[dataset.size()];
-		// initialize the weights on data points with value 1/N
-		for (int i = 0; i < weights.length; i++)
-			weights[i] = 1.0/dataset.size();
+		resetWeights();
 		alphas = new double[numberOfHypotheses];
-		sortDatasetInVariables(dataset);
 		
 		/*
 		 * Train m hypotheses according to the scaled AdaBoost algorithm.
@@ -39,7 +31,7 @@ public class AdaBoost
 			// choose a random feature <- {0,56}
 			int feature = (int) (Math.random() * 57.0);
 			// initialize hypothesis
-			hypotheses[hypothesis_index] = new BaseLearner(sortedData, weights, feature, this);
+			hypotheses[hypothesis_index] = new BaseLearner(datasets.get(feature), feature, this);
 			// calculate the error (cumulative weight of all misclassified points/ total weight)
 			double error = calculateError(hypothesis_index);
 			// calculate the alpha value for this hypothesis (alpha <- 1/2 ln((1 - err)/err)
@@ -49,37 +41,26 @@ public class AdaBoost
 		}
 	}
 
-	private void sortDatasetInVariables(List<Mail> allData)
+	/**
+	 * Method to reset all the weights associated with the mails in the dataset.
+	 */
+	private void resetWeights()
 	{
-		// TODO Comment
-		sortedData = new DataPair[allData.get(0).x.length][];
-		
-		for (int i = 0; i < sortedData.length; i++)
-			sortedData[i] = new DataPair[allData.size()];
-		
-		for (int dataPoint = 0; dataPoint < allData.size(); dataPoint++)
-		{
-			for (int var = 0; var < sortedData.length; var++)
-			{
-				sortedData[var][dataPoint] = new DataPair(dataPoint, allData.get(dataPoint).x[var]);
-			}
-		}
-		// sort every variable array
-		for (int variable_index = 0; variable_index < sortedData.length; variable_index++)
-			Arrays.sort(sortedData[variable_index]);
+		// initialize the weights of every data point with value 1/N
+		for (int i = 0; i < datasets.get(0).size(); i++)
+			datasets.get(0).get(i).weight = 1.0/datasets.get(0).size();
 	}
-
 
 	private double calculateError(int m) 
 	{
 		double cumulativeError  = 0.0;
 		// for every data point:
-		for (int i = 0; i < dataset.size(); i++)
+		for (int i = 0; i < datasets.get(0).size(); i++)
 		{
 			// if the hypothesis misclassifies the data point
-			if (hypotheses[m].classify(dataset.get(i)) != dataset.get(i).y)
+			if (hypotheses[m].classify(datasets.get(0).get(i)) != datasets.get(0).y(i))
 				// add the weight of the data point to the cumulative error
-				cumulativeError += weights[i];
+				cumulativeError += datasets.get(0).get(i).weight;
 		}
 		// return err_m <- total weight of the errors / total weight (total weight is 1)
 		return cumulativeError;
@@ -108,24 +89,27 @@ public class AdaBoost
 		double cumulativeWeights = 0.0;
 		// call the current hypothesis g:
 		BaseLearner hypothesis = hypotheses[m];
+		// for readability, for this method the order doesn't matter, so we'll use the 1st list
+		SortedDataSet dataset = datasets.get(0);
 		
 		// update all the weights: w_i <- w_i * e ^ (-y_i * g_m(x_i) * alpha_m)
-		for (int i = 0; i < weights.length; i++)
+		for (int i = 0; i < dataset.size(); i++)
 		{
 			// update w_i
-			weights[i] *= Math.exp
+			dataset.get(i).weight *= Math.exp
 					(
-							-dataset.get(i).y *
+							-dataset.y(i) *
 							hypothesis.classify(dataset.get(i)) *
 							alphas[m]
 					);
 			// add w_i to cumulative weights
-			cumulativeWeights += weights[i];
+			cumulativeWeights += dataset.get(i).weight;
 		}
 		// scale the weights in such a way that their sum is 1
-		for (int i = 0; i < weights.length; i++)
-			weights[i] /= cumulativeWeights;
+		for (int i = 0; i < dataset.size(); i++)
+			dataset.get(i).weight /= cumulativeWeights;
 	}
+	
 	
 	/**
 	 * Classifies the e-mail as <b>spam</b> (+1) or <b>not spam</b> (-1) by 

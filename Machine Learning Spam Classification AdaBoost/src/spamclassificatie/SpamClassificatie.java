@@ -1,6 +1,5 @@
 package spamclassificatie;
 import java.util.*;
-import java.lang.*;
 import java.io.*;
 
 public class SpamClassificatie {
@@ -12,6 +11,9 @@ public class SpamClassificatie {
         List<Mail> allData = new ArrayList<>();
         
         main.LoadFile("spambase.txt", allData);
+        
+        // the number of features, this variable is specified for readability later on
+        int numberOfFeatures = allData.get(0).x.length;
 
         // number of datasets, used for crossvalidation
 		int numberOfDataSets = 10;
@@ -28,14 +30,12 @@ public class SpamClassificatie {
 		// size = |dataset| / numberOfDataSets
         List<List<Mail>> datasets = splitDataSet(allData, numberOfDataSets);
         
-        // start the timer
-        long startTime = System.currentTimeMillis();
-        
         class DataSet 
     	{
-    		private List<Mail> dataSet, validationSet;
+        	private List<SortedDataSet> dataSet;
+    		private List<Mail> validationSet;
     		
-    		public DataSet(List<Mail> dataSet, List<Mail> validationSet)
+    		public DataSet(List<SortedDataSet> dataSet, List<Mail> validationSet)
     		{
     			this.dataSet = dataSet;
     			this.validationSet = validationSet;
@@ -50,15 +50,22 @@ public class SpamClassificatie {
         
         // generate and cross-validate
         List<DataSet> new_datasets = new ArrayList<DataSet>(numberOfDataSets);
-		for (int i = 0;i < numberOfDataSets;i++) 
+        List<SortedDataSet> sortedDataSets = new ArrayList<SortedDataSet>();
+		for (int i = 0; i < numberOfDataSets; i++) 
 		{
 			List<Mail> currentDataSet = new ArrayList<Mail>();
 			List<Mail> validationSet = datasets.get(i);
 			for (int a = 0; a < numberOfDataSets; a++)
 				if (a!= i) currentDataSet.addAll(datasets.get(a));
-			new_datasets.add(new DataSet(currentDataSet, validationSet));
+			for (int a = 0; a < numberOfFeatures; a++)
+				sortedDataSets.add(new SortedDataSet(currentDataSet, a));
+			
+			new_datasets.add(new DataSet(sortedDataSets, validationSet));
 		}
 		
+		// start the timer
+        long startTime = System.currentTimeMillis();
+        
 		for (; valueOfM < valueOfM_limit; valueOfM += valueOfM_incrementer)
         {
         	double error_total = 0;
@@ -68,7 +75,7 @@ public class SpamClassificatie {
         		for (int i = 0; i < numberOfDataSets; i++)
         		
         		{
-        			List<Mail> currentDataSet = new_datasets.get(i).dataSet;
+        			List<SortedDataSet> currentDataSet = new_datasets.get(i).dataSet;
         			List<Mail> validationSet = new_datasets.get(i).validationSet;
         			AdaBoost adaBoost = new AdaBoost(valueOfM,currentDataSet);
         			double error = 0;

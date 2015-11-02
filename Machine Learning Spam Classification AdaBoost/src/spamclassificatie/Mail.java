@@ -6,6 +6,7 @@ public class Mail
 {
     public double[] x;
     public int y;
+    public double weight;
 
     public void fromString(String text)
     {
