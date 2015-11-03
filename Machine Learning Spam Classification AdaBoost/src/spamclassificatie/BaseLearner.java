@@ -55,17 +55,17 @@ public class BaseLearner {
 		double w_minus_all = 0;
 		
 		// for readability
-		DataPair[] current_feature = sortedData[feature];
+		DataPair[] sorted_feature = sortedData[feature];
 		// calculate w_- and w_+
-		for (int i = 0; i < current_feature.length; i++)
+		for (int i = 0; i < sorted_feature.length; i++)
 		{
 			// if non-spam
-			if (parent.dataset.get(current_feature[i].x_index).y < 0)
+			if (parent.dataset.get(sorted_feature[i].original_index).y < 0)
 				// add weight to non-spam total
-				w_minus_all += weights.get(current_feature[i].x_index);
+				w_minus_all += weights.get(sorted_feature[i].original_index);
 			else
 				// else add weight to spam total
-				w_plus_all += weights.get(current_feature[i].x_index);;
+				w_plus_all += weights.get(sorted_feature[i].original_index);;
 		}
 		
 		// the cumulative weights from the minimum to the current position.
@@ -87,17 +87,26 @@ public class BaseLearner {
 		
 		
 		// iterate through all mails in the training set
-		for (int current_mail = 0; current_mail < current_feature.length; current_mail++)
+		for (int sortedMail_idx = 0; sortedMail_idx < sorted_feature.length; sortedMail_idx++)
 		{
 			// if the mail is non-spam
-			if (parent.dataset.get(current_feature[current_mail].x_index).y < 0)
+			// for readablility
+			DataPair current_pair = sorted_feature[sortedMail_idx];
+			// 
+			double current_weight = weights.get(current_pair.original_index);
+			// lookup this Mail in the original dataset by calling the get() method with 
+			// the index of this Mail in that dataset
+			Mail mail = parent.dataset.get(current_pair.original_index);
+			
+			// if t
+			if (mail.y < 0)
 				// add its weight to the cumulative weight of non-spam
-				w_minus_A += weights.get(current_feature[current_mail].x_index);
+				w_minus_A += current_weight;
 			else
 				// else add its weight to the cumulative weight of spam
-				w_plus_A += weights.get(current_feature[current_mail].x_index);
+				w_plus_A += current_weight;
 			// add the weighted classification to the cumulative classification
-			classification += weights.get(current_feature[current_mail].x_index) * parent.dataset.get(current_feature[current_mail].x_index).y;
+			classification += current_weight * mail.y;
 			
 			/* 
 			 * Calculate the Gini index 
@@ -121,7 +130,7 @@ public class BaseLearner {
 				e_min = e;
 				
 				// store the index of the e-mail
-				x_min = current_mail;
+				x_min = sortedMail_idx;
 				// store the weighted classification of part A
 				classification_min = classification;
 			}
@@ -130,7 +139,7 @@ public class BaseLearner {
 		// a can be approximated by using the weighted classification of part A
 		a = classification_min < 0 ? -1 : 1;
 		// b is the value of feature of the mail where e is the lowest
-		b = current_feature[x_min].value;
+		b = sorted_feature[x_min].value;
 	}
 	
 

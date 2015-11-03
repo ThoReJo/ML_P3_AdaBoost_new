@@ -7,7 +7,7 @@ package spamclassificatie;
 public class DataPair implements Comparable<DataPair>
 {
 	// index of the mail in the original dataset
-	public int x_index;
+	public int original_index;
 	// the value of the feature, used in the compare-method
 	public double value;
 	
@@ -18,7 +18,7 @@ public class DataPair implements Comparable<DataPair>
 	 */
 	public DataPair(int original_index, double d)
 	{
-		x_index = original_index;
+		this.original_index = original_index;
 		value = d;
 	}
 
